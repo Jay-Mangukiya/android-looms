@@ -374,28 +374,79 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 const SizedBox(height: 24),
                 
-                // Shift Summary Placeholder
-                Text(
-                  'Shift Summary',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildShiftCard(
-                  'Day Shift',
-                  '2,140m',
-                  '₹6,420',
-                  Colors.amber,
-                  Icons.wb_sunny,
-                ),
-                const SizedBox(height: 12),
-                _buildShiftCard(
-                  'Night Shift',
-                  '1,950m',
-                  '₹5,850',
-                  Colors.indigo,
-                  Icons.nightlight_round,
+                Builder(
+                  builder: (context) {
+                    final String? safeUserId = context.watch<AuthService>().currentUser?.uid;
+                    if (safeUserId == null) return const SizedBox();
+                    
+                    return StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance.collection('users').doc(safeUserId).collection('productions').snapshots(),
+                      builder: (context, snapshot) {
+                        final docs = snapshot.data?.docs ?? [];
+                        
+                        double dayMeters = 0;
+                        double dayEarnings = 0;
+                        double nightMeters = 0;
+                        double nightEarnings = 0;
+                        
+                        if (docs.isNotEmpty) {
+                          for (var doc in docs) {
+                            final data = doc.data() as Map<String, dynamic>;
+                            final shift = data['shift'] as String?;
+                            final meters = (data['meters'] as num?)?.toDouble() ?? 0.0;
+                            final earnings = (data['earnings'] as num?)?.toDouble() ?? 0.0;
+                            
+                            if (shift == 'Day') {
+                              dayMeters += meters;
+                              dayEarnings += earnings;
+                            } else if (shift == 'Night') {
+                              nightMeters += meters;
+                              nightEarnings += earnings;
+                            }
+                          }
+                        } else {
+                          // Fallback to global dummy data
+                          for (var prod in globalProductions) {
+                            if (prod.shift == 'Day') {
+                              dayMeters += prod.metersProduced;
+                              dayEarnings += prod.earnings;
+                            } else if (prod.shift == 'Night') {
+                              nightMeters += prod.metersProduced;
+                              nightEarnings += prod.earnings;
+                            }
+                          }
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Shift Summary',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildShiftCard(
+                              'Day Shift',
+                              '${dayMeters.toStringAsFixed(1)}m',
+                              '₹${dayEarnings.toStringAsFixed(2)}',
+                              Colors.amber,
+                              Icons.wb_sunny,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildShiftCard(
+                              'Night Shift',
+                              '${nightMeters.toStringAsFixed(1)}m',
+                              '₹${nightEarnings.toStringAsFixed(2)}',
+                              Colors.indigo,
+                              Icons.nightlight_round,
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
                 ),
                 const SizedBox(height: 50), // Bottom padding
               ]),
