@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../services/notification_service.dart';
+import '../../widgets/app_drawer.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -151,6 +152,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
+      drawer: const AppDrawer(),
       body: FadeTransition(
         opacity: _fadeAnim,
         child: CustomScrollView(

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/gradient_button.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:csv/csv.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 
 class ReportScreen extends StatefulWidget {
@@ -119,17 +120,40 @@ class _GeneratedReportScreenState extends State<GeneratedReportScreen> {
     });
 
     try {
-      // Prepare CSV data
-      List<List<dynamic>> csvData = [];
-      if (data.isNotEmpty) {
-        // Headers
-        csvData.add(data.first.keys.toList());
-        // Rows
-        for (var row in data) {
-          csvData.add(row.values.toList());
-        }
-      }
-      String csvContent = const ListToCsvConverter().convert(csvData);
+      final pdf = pw.Document();
+
+      // Prepare Headers & Rows
+      final headers = data.isNotEmpty ? data.first.keys.toList() : <String>[];
+      final rows = data.map((row) => row.values.toList()).toList();
+
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('${widget.reportType} Report', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 10),
+                pw.Text('Date Range: ${widget.dateRange.start.toString().split(' ')[0]} to ${widget.dateRange.end.toString().split(' ')[0]}'),
+                pw.SizedBox(height: 20),
+                if (data.isNotEmpty)
+                  pw.TableHelper.fromTextArray(
+                    headers: headers,
+                    data: rows,
+                    border: pw.TableBorder.all(),
+                    headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    cellAlignment: pw.Alignment.centerLeft,
+                  )
+                else
+                  pw.Text('No data available for this report.'),
+              ],
+            );
+          },
+        ),
+      );
+
+      final bytes = await pdf.save();
 
       // Get Directory
       Directory? directory;
@@ -142,11 +166,11 @@ class _GeneratedReportScreenState extends State<GeneratedReportScreen> {
       }
 
       final String timeStamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final String fileName = '${widget.reportType}_Report_$timeStamp.csv';
+      final String fileName = '${widget.reportType}_Report_$timeStamp.pdf';
       final String filePath = '${directory.path}/$fileName';
 
       final File file = File(filePath);
-      await file.writeAsString(csvContent);
+      await file.writeAsBytes(bytes);
 
       if (mounted) {
         // Using share_plus to invoke the OS target selection dialog
