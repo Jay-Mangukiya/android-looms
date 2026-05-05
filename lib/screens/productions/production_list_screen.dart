@@ -3,6 +3,36 @@ import '../../widgets/app_drawer.dart';
 import '../../models/production_model.dart';
 import 'add_edit_production_screen.dart';
 
+// Global dummy data so it persists across screen navigation
+final List<Production> globalProductions = [
+  Production(
+    id: '1',
+    date: DateTime.now(),
+    machineId: 'm1',
+    machineName: 'Loom 01',
+    workerId: 'w1',
+    workerName: 'Ram Kumar',
+    takaId: 't1',
+    takaNumber: 'Taka-101',
+    shift: 'Day',
+    metersProduced: 120.5,
+    earnings: 1205.0,
+  ),
+  Production(
+    id: '2',
+    date: DateTime.now().subtract(const Duration(days: 1)),
+    machineId: 'm2',
+    machineName: 'Loom 02',
+    workerId: 'w2',
+    workerName: 'Shyam Singh',
+    takaId: 't2',
+    takaNumber: 'Taka-102',
+    shift: 'Night',
+    metersProduced: 115.0,
+    earnings: 1150.0,
+  ),
+];
+
 class ProductionListScreen extends StatefulWidget {
   const ProductionListScreen({super.key});
 
@@ -11,35 +41,8 @@ class ProductionListScreen extends StatefulWidget {
 }
 
 class _ProductionListScreenState extends State<ProductionListScreen> {
-  // Dummy Data
-  final List<Production> productions = [
-      Production(
-        id: '1',
-        date: DateTime.now(),
-        machineId: 'm1',
-        machineName: 'Loom 01',
-        workerId: 'w1',
-        workerName: 'Ram Kumar',
-        takaId: 't1',
-        takaNumber: 'Taka-101',
-        shift: 'Day',
-        metersProduced: 120.5,
-        earnings: 1205.0,
-      ),
-      Production(
-        id: '2',
-        date: DateTime.now().subtract(const Duration(days: 1)),
-        machineId: 'm2',
-        machineName: 'Loom 02',
-        workerId: 'w2',
-        workerName: 'Shyam Singh',
-        takaId: 't2',
-        takaNumber: 'Taka-102',
-        shift: 'Night',
-        metersProduced: 115.0,
-        earnings: 1150.0,
-      ),
-    ];
+  // Use the global list
+  final List<Production> productions = globalProductions;
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +142,7 @@ class _ProductionListScreenState extends State<ProductionListScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Production'),
-        content: Text('Are you sure you want to delete this production record?'),
+        content: const Text('Are you sure you want to delete this production record?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -148,9 +151,12 @@ class _ProductionListScreenState extends State<ProductionListScreen> {
           TextButton(
             onPressed: () {
               setState(() {
-                productions.remove(production);
+                productions.removeWhere((p) => p.id == production.id);
               });
               Navigator.pop(dialogContext); // Close dialog
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Production deleted')),
+              );
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),

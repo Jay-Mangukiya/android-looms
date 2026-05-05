@@ -3,6 +3,32 @@ import '../../widgets/app_drawer.dart';
 import '../../models/worker_model.dart';
 import 'add_edit_worker_screen.dart';
 
+// Global dummy data so it persists across screen navigation
+final List<Worker> globalWorkers = [
+  Worker(
+    id: '1',
+    name: 'Rajesh Kumar',
+    workerCode: 'W001',
+    workerType: 'Permanent',
+    shift: 'Day',
+    phone: '9876543210',
+  ),
+  Worker(
+    id: '2',
+    name: 'Suresh Singh',
+    workerCode: 'W002',
+    workerType: 'Temporary',
+    shift: 'Night',
+  ),
+  Worker(
+    id: '3',
+    name: 'Mahesh Babu',
+    workerCode: 'W003',
+    workerType: 'Permanent',
+    shift: 'Both',
+  ),
+];
+
 class WorkerListScreen extends StatefulWidget {
   const WorkerListScreen({super.key});
 
@@ -11,31 +37,8 @@ class WorkerListScreen extends StatefulWidget {
 }
 
 class _WorkerListScreenState extends State<WorkerListScreen> {
-  // Dummy Data
-  final List<Worker> workers = [
-    Worker(
-      id: '1',
-      name: 'Rajesh Kumar',
-      workerCode: 'W001',
-      workerType: 'Permanent',
-      shift: 'Day',
-      phone: '9876543210',
-    ),
-    Worker(
-      id: '2',
-      name: 'Suresh Singh',
-      workerCode: 'W002',
-      workerType: 'Temporary',
-      shift: 'Night',
-    ),
-    Worker(
-      id: '3',
-      name: 'Mahesh Babu',
-      workerCode: 'W003',
-      workerType: 'Permanent',
-      shift: 'Both',
-    ),
-  ];
+  // Use the global list
+  final List<Worker> workers = globalWorkers;
 
   void _deleteWorker(String id) {
     setState(() {

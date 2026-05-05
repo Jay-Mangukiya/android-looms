@@ -3,6 +3,39 @@ import '../../widgets/app_drawer.dart';
 import '../../models/taka_model.dart';
 import 'add_edit_taka_screen.dart';
 
+// Global dummy data so it persists across screen navigation
+final List<Taka> globalTakas = [
+  Taka(
+    id: '1',
+    takaNumber: 'T-1001',
+    machineId: 'm1',
+    machineName: 'Loom 01',
+    qualityId: 'q1',
+    qualityName: 'Cotton 60s',
+    targetMeters: 1000,
+    totalMeters: 450.5,
+    ratePerMeter: 12.5,
+    status: 'Active',
+    totalEarnings: 450.5 * 12.5,
+    startDate: DateTime.now().subtract(const Duration(days: 2)),
+  ),
+  Taka(
+    id: '2',
+    takaNumber: 'T-1002',
+    machineId: 'm2',
+    machineName: 'Loom 02',
+    qualityId: 'q2',
+    qualityName: 'Polyester 40s',
+    targetMeters: 1200,
+    totalMeters: 1200,
+    ratePerMeter: 9.75,
+    status: 'Completed',
+    totalEarnings: 1200 * 9.75,
+    startDate: DateTime.now().subtract(const Duration(days: 5)),
+    endDate: DateTime.now().subtract(const Duration(days: 1)),
+  ),
+];
+
 class TakaListScreen extends StatefulWidget {
   const TakaListScreen({super.key});
 
@@ -11,37 +44,7 @@ class TakaListScreen extends StatefulWidget {
 }
 
 class _TakaListScreenState extends State<TakaListScreen> {
-  final List<Taka> takas = [
-    Taka(
-      id: '1',
-      takaNumber: 'T-1001',
-      machineId: 'm1',
-      machineName: 'Loom 01',
-      qualityId: 'q1',
-      qualityName: 'Cotton 60s',
-      targetMeters: 1000,
-      totalMeters: 450.5,
-      ratePerMeter: 12.5,
-      status: 'Active',
-      totalEarnings: 450.5 * 12.5,
-      startDate: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-    Taka(
-      id: '2',
-      takaNumber: 'T-1002',
-      machineId: 'm2',
-      machineName: 'Loom 02',
-      qualityId: 'q2',
-      qualityName: 'Polyester 40s',
-      targetMeters: 1200,
-      totalMeters: 1200,
-      ratePerMeter: 9.75,
-      status: 'Completed',
-      totalEarnings: 1200 * 9.75,
-      startDate: DateTime.now().subtract(const Duration(days: 5)),
-      endDate: DateTime.now().subtract(const Duration(days: 1)),
-    ),
-  ];
+  final List<Taka> takas = globalTakas;
 
   void _deleteTaka(String id) {
     setState(() {

@@ -199,15 +199,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           stream: FirebaseFirestore.instance.collection('users').doc(safeUserId).collection('workers').snapshots(),
                           builder: (context, snapshot) {
                             final docs = snapshot.data?.docs ?? [];
-                            final count = docs.isEmpty ? 3 : docs.length; // Fallback to 3 static dummy UI elements
+                            final count = docs.isEmpty ? globalWorkers.length : docs.length; // Fallback to dummy data
                             return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
+                              onTap: () async {
+                                await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => const WorkerListScreen(),
                                   ),
                                 );
+                                if (mounted) setState(() {});
                               },
                               child: StatCard(
                                 title: 'Total Workers',
@@ -225,15 +226,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           stream: FirebaseFirestore.instance.collection('users').doc(safeUserId).collection('takas').snapshots(),
                           builder: (context, snapshot) {
                             final docs = snapshot.data?.docs ?? [];
-                            final count = docs.isEmpty ? 2 : docs.length; // Fallback to 2 static dummy UI elements
+                            final count = docs.isEmpty ? globalTakas.length : docs.length; // Fallback to dummy data
                             return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
+                              onTap: () async {
+                                await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => const TakaListScreen(),
                                   ),
                                 );
+                                if (mounted) setState(() {});
                               },
                               child: StatCard(
                                 title: 'Active Takas',
@@ -259,16 +261,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   totalMeters += (data['meters'] as num).toInt();
                                 }
                               }
+                            } else {
+                              for(var prod in globalProductions) {
+                                totalMeters += prod.metersProduced.toInt();
+                              }
                             }
-                            final displayVal = docs.isEmpty ? '4.2km' : '${totalMeters > 0 ? totalMeters : docs.length}m';
+                            final displayVal = docs.isEmpty ? '${totalMeters}m' : '${totalMeters > 0 ? totalMeters : docs.length}m';
                             return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
+                              onTap: () async {
+                                await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => const ProductionListScreen(),
                                   ),
                                 );
+                                if (mounted) setState(() {});
                               },
                               child: StatCard(
                                 title: 'Today\'s Prod.',
@@ -317,13 +324,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           icon: Icons.add_circle,
                           label: 'Production',
                           color: const Color(0xFF3B82F6), // Blue
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => const ProductionListScreen(),
                               ),
                             );
+                            if (mounted) setState(() {});
                           },
                         ),
                       ),
@@ -333,13 +341,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           icon: Icons.assignment_ind,
                           label: 'Worker',
                           color: const Color(0xFF10B981), // Green
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => const WorkerListScreen(),
                               ),
                             );
+                            if (mounted) setState(() {});
                           },
                         ),
                       ),
