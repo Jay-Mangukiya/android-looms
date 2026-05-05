@@ -7,6 +7,10 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 
+import '../productions/production_list_screen.dart';
+import '../workers/worker_list_screen.dart';
+import '../takas/taka_list_screen.dart';
+
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
 
@@ -205,29 +209,75 @@ class _GeneratedReportScreenState extends State<GeneratedReportScreen> {
     final startStr = widget.dateRange.start.toString().split(' ')[0];
     final endStr = widget.dateRange.end.toString().split(' ')[0];
     
-    // Generate dummy data based on report type
+    // Calculate end of day for the end date to include the entire last day
+    final start = widget.dateRange.start;
+    final end = widget.dateRange.end.add(const Duration(days: 1)); 
+    
     List<Map<String, String>> data = [];
+
     if (widget.reportType == 'Production') {
-      data = [
-        {'Date': startStr, 'Machine': 'Loom 01', 'Meters': '450.5'},
-        {'Date': startStr, 'Machine': 'Loom 02', 'Meters': '620.0'},
-        {'Date': endStr, 'Machine': 'Loom 01', 'Meters': '490.2'},
-      ];
+      final filtered = globalProductions.where((p) => p.date.isAfter(start.subtract(const Duration(seconds: 1))) && p.date.isBefore(end)).toList();
+      data = filtered.map((p) => {
+        'Date': p.date.toString().split(' ')[0],
+        'Machine': p.machineName,
+        'Worker': p.workerName,
+        'Taka No': p.takaNumber,
+        'Meters': p.metersProduced.toStringAsFixed(1),
+        'Earnings': '₹${p.earnings.toStringAsFixed(2)}',
+      }).toList();
     } else if (widget.reportType == 'Workers') {
-      data = [
-        {'Name': 'Rajesh Kumar', 'Shift': 'Day', 'Attendance': '95%'},
-        {'Name': 'Suresh Singh', 'Shift': 'Night', 'Attendance': '88%'},
-      ];
+      data = globalWorkers.map((w) {
+        final prods = globalProductions.where((p) => p.workerId == w.id && p.date.isAfter(start.subtract(const Duration(seconds: 1))) && p.date.isBefore(end));
+        final totalMeters = prods.fold(0.0, (sum, p) => sum + p.metersProduced);
+        final totalEarnings = prods.fold(0.0, (sum, p) => sum + p.earnings);
+        return {
+          'Name': w.name,
+          'Shift': w.shift,
+          'Total Meters': totalMeters.toStringAsFixed(1),
+          'Earnings Generated': '₹${totalEarnings.toStringAsFixed(2)}',
+        };
+      }).toList();
     } else if (widget.reportType == 'Takas') {
-      data = [
-        {'Taka No': 'T-1001', 'Status': 'Completed', 'Meters': '1000'},
-        {'Taka No': 'T-1002', 'Status': 'Active', 'Meters': '450'},
-      ];
+      final filtered = globalTakas.where((t) => (t.startDate?.isBefore(end) ?? false) && (t.endDate == null || t.endDate!.isAfter(start.subtract(const Duration(seconds: 1))))).toList();
+      data = filtered.map((t) {
+        return {
+          'Taka No': t.takaNumber,
+          'Quality': t.qualityName,
+          'Status': t.status,
+          'Progress': '${t.totalMeters}/${t.targetMeters}m',
+          'Earnings': '₹${t.totalEarnings.toStringAsFixed(2)}',
+        };
+      }).toList();
     } else {
-      data = [
-        {'Date': startStr, 'Amount': '₹12,450'},
-        {'Date': endStr, 'Amount': '₹14,200'},
-      ];
+      // Earnings Report
+      final filtered = globalProductions.where((p) => p.date.isAfter(start.subtract(const Duration(seconds: 1))) && p.date.isBefore(end)).toList();
+      
+      // Group by Date
+      Map<String, double> dailyEarnings = {};
+      for (var p in filtered) {
+        final dateStr = p.date.toString().split(' ')[0];
+        dailyEarnings[dateStr] = (dailyEarnings[dateStr] ?? 0.0) + p.earnings;
+      }
+      
+      final sortedDates = dailyEarnings.keys.toList()..sort();
+      double totalPeriodEarnings = 0;
+      
+      data = sortedDates.map((dateStr) {
+        final amt = dailyEarnings[dateStr]!;
+        totalPeriodEarnings += amt;
+        return {
+          'Date': dateStr,
+          'Amount': '₹${amt.toStringAsFixed(2)}',
+        };
+      }).toList();
+      
+      // Add a total row at the bottom
+      if (data.isNotEmpty) {
+        data.add({
+          'Date': 'TOTAL',
+          'Amount': '₹${totalPeriodEarnings.toStringAsFixed(2)}',
+        });
+      }
     }
 
     return Scaffold(
